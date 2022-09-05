@@ -263,8 +263,9 @@ class CustodianSettings(object):
                                "params": vasp_job_settings}]
         else:
             for name, job in self.custodian_jobs.items():
-                for k, v in vasp_job_settings.items():
-                    job[k] = deepcopy(v)
+                job["vasp_cmd"] = self.vasp_cmd
+                job["output_file"] = self.stdout
+                job["stderr_file"] = self.stderr
             custodian_jobs = [dict(jb=vasp_job_type, params=job)
                               for name, job in self.custodian_jobs.items()]
 
