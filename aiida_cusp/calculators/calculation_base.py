@@ -84,6 +84,13 @@ class CalculationBase(CalcJob):
             required=False,
             help=("Calculation settings passed to the custodian executable")
         )
+        spec.input(
+            'custodian.jobs',
+            valid_type=Dict,
+            serializer=to_aiida_type,
+            required=False,
+            help=("Calculation jobs passed to the custodian executable")
+        )
         # required inputs to restart a calculation
         spec.input_namespace('restart', required=False)
         spec.input(
@@ -256,6 +263,9 @@ class CalculationBase(CalcJob):
         # parameters
         settings = dict(self.inputs.custodian.get('settings', {}))
         handlers = dict(self.inputs.custodian.get('handlers', {}))
+        jobs = dict(self.inputs.custodian.get('jobs', {}))
+        if len(jobs) == 0:
+            jobs = None
         # get the vasp run command and the stdout / stderr files
         vasp_cmd = self.vasp_run_line()
         stdout = self._default_output_file
@@ -264,6 +274,7 @@ class CalculationBase(CalcJob):
         custodian_settings = CustodianSettings(vasp_cmd, stdout, stderr,
                                                settings=settings,
                                                handlers=handlers,
+                                               jobs=jobs,
                                                is_neb=is_neb)
         return custodian_settings
 
