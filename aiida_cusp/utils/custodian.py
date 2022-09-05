@@ -44,7 +44,7 @@ class CustodianSettings(object):
         settings={},
         handlers={},
         is_neb=False,
-        jobs=None,
+        jobs={},
     ):
         # store shared variables
         self.vasp_cmd = vasp_cmd
@@ -255,16 +255,17 @@ class CustodianSettings(object):
             vasp_job_type = CustodianDefaults.VASP_NEB_JOB_IMPORT_PATH
         else:
             vasp_job_type = CustodianDefaults.VASP_JOB_IMPORT_PATH
-        if self.custodian_jobs is None:
+
+        if len(self.custodian_jobs) == 0:
             custodian_jobs = [{"jb": vasp_job_type,
                                "params": vasp_job_settings}]
         else:
             for name, job in self.custodian_jobs.items():
-                params = job.get("params", {})
                 for k, v in vasp_job_settings.items():
-                    params[k] = v
-                job["params"] = params
-            custodian_jobs = self.custodian_jobs
+                    job[k] = v
+            custodian_jobs = [dict(jb=vasp_job_type, params=job)
+                              for name, job in self.custodian_jobs.items()]
+
         # handler specification is expected as list of the form
         # [
         #   {'hdlr': handler1_import_path, 'params': {'handler1_params}},

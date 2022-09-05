@@ -264,8 +264,6 @@ class CalculationBase(CalcJob):
         settings = dict(self.inputs.custodian.get('settings', {}))
         handlers = dict(self.inputs.custodian.get('handlers', {}))
         jobs = dict(self.inputs.custodian.get('jobs', {}))
-        if len(jobs) == 0:
-            jobs = None
         # get the vasp run command and the stdout / stderr files
         vasp_cmd = self.vasp_run_line()
         stdout = self._default_output_file
