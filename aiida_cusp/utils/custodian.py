@@ -9,6 +9,8 @@ up the input scripts for the Custodian executable.
 
 import yaml
 
+from copy import deepcopy
+
 from aiida_cusp.utils.exceptions import CustodianSettingsError
 from aiida_cusp.utils.defaults import CustodianDefaults
 
@@ -262,7 +264,7 @@ class CustodianSettings(object):
         else:
             for name, job in self.custodian_jobs.items():
                 for k, v in vasp_job_settings.items():
-                    job[k] = v
+                    job[k] = deepcopy(v)
             custodian_jobs = [dict(jb=vasp_job_type, params=job)
                               for name, job in self.custodian_jobs.items()]
 
