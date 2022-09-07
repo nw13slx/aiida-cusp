@@ -62,10 +62,14 @@ class VaspFileParser(ParserBase):
         parsed_results = []
         for filepath in self.files_to_parse:
             parser = self.parsing_hook(filepath)
+            # print("hello", filepath, parser)
             try:
                 parsed = getattr(self, parser)(filepath)
+                # for p in parsed:
+                #     print("  succeeded", type(p))
             except AttributeError:
                 parsed = self.parse_generic(filepath)
+                # print("fail", filepath, parser)
             parsed_results.append(parsed)
         # finish parsing by adding parsed results as output nodes
         exit_code = self.register_output_nodes(parsed_results)
@@ -77,10 +81,9 @@ class VaspFileParser(ParserBase):
         replace all non-alphanumeric characters with underscores, as such
         character are not allowed in output linknames
         """
-        name, _ = self.remove_suffix(name)
         return re.sub(r"[^a-z0-9_]", "_", name.lower())
 
-    def remove_suffix(self, name):
+    def split_suffix(self, name):
         exist_parsers = ["generic", "wavecar", "chgcar",
                          "contcar", "vasprun.xml", "outcar"]
         formal_name = name
@@ -92,7 +95,8 @@ class VaspFileParser(ParserBase):
         return formal_name, suffix
 
     def parsing_hook(self, filepath):
-        return "parse_{}".format(self.normalized_filename(filepath.name))
+        name, _ = self.split_suffix(filepath.name)
+        return "parse_{}".format(self.normalized_filename(name))
 
     def linkname(self, filepath):
         """
@@ -105,8 +109,9 @@ class VaspFileParser(ParserBase):
                                        neb_folder.group())
         else:
             namespace = ""
-        name, suffix = self.remove_suffix(filepath.name)
-        object_name = self.normalized_filename(name) + suffix
+        name, suffix = self.split_suffix(filepath.name)
+        object_name = self.normalized_filename(name) \
+            + self.normalized_filename(suffix)
         return "{}{}".format(namespace, object_name)
 
     def build_parsing_list(self):

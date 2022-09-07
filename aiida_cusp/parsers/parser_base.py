@@ -80,6 +80,7 @@ class ParserBase(Parser):
         try:
             for linkname, node in output_nodes:
                 complete_linkname = self.complete_linkname(linkname)
+                # print("output node", complete_linkname, node)
                 self.out(complete_linkname, node)
             return None
         except exceptions.ModificationNotAllowed:
