@@ -71,25 +71,28 @@ class VaspFileParser(ParserBase):
         exit_code = self.register_output_nodes(parsed_results)
         return exit_code
 
-    def normalized_filename(self, filepath):
+    def normalized_filename(self, name):
         """
         Return a normalized version of the filename, i.e. lower case and
         replace all non-alphanumeric characters with underscores, as such
         character are not allowed in output linknames
         """
-        name = filepath.name.lower()
+        name, _ = self.remove_suffix(name)
+        return re.sub(r"[^a-z0-9_]", "_", name.lower())
 
-        # remove suffix
+    def remove_suffix(self, name):
         exist_parsers = ["generic", "wavecar", "chgcar",
                          "contcar", "vasprun.xml", "outcar"]
+        formal_name = name
+        suffix = ""
         for parser in exist_parsers:
-            if name.startswith(parser):
-                name = parser
-
-        return re.sub(r"[^a-z0-9_]", "_", name)
+            if name.lower().startswith(parser):
+                formal_name = parser
+                suffix = name[len(parser):]
+        return formal_name, suffix
 
     def parsing_hook(self, filepath):
-        return "parse_{}".format(self.normalized_filename(filepath))
+        return "parse_{}".format(self.normalized_filename(filepath.name))
 
     def linkname(self, filepath):
         """
@@ -102,7 +105,9 @@ class VaspFileParser(ParserBase):
                                        neb_folder.group())
         else:
             namespace = ""
-        return "{}{}".format(namespace, self.normalized_filename(filepath))
+        name, suffix = self.remove_suffix(filepath.name)
+        object_name = self.normalized_filename(name) + suffix
+        return "{}{}".format(namespace, object_name)
 
     def build_parsing_list(self):
         """
