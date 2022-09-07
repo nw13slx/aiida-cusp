@@ -77,7 +77,16 @@ class VaspFileParser(ParserBase):
         replace all non-alphanumeric characters with underscores, as such
         character are not allowed in output linknames
         """
-        return re.sub(r"[^a-z0-9_]", "_", filepath.name.lower())
+        name = filepath.name.lower()
+
+        # remove suffix
+        exist_parsers = ["generic", "wavecar", "chgcar",
+                         "contcar", "vasprun.xml", "outcar"]
+        for parser in exist_parsers:
+            if name.startswith(parser):
+                name = parser
+
+        return re.sub(r"[^a-z0-9_]", "_", name)
 
     def parsing_hook(self, filepath):
         return "parse_{}".format(self.normalized_filename(filepath))
@@ -108,7 +117,7 @@ class VaspFileParser(ParserBase):
             # NEVER EVER parse a POTCAR file
             self.files_to_parse += [
                 f for f in filelist if f.is_file()
-                and f.name != VaspDefaults.FNAMES['potcar']
+                and not f.name.startswith(VaspDefaults.FNAMES['potcar'])
             ]
         # do not parse the same file multiple times
         self.files_to_parse = list(set(self.files_to_parse))
@@ -123,7 +132,7 @@ class VaspFileParser(ParserBase):
         Fail the parsing process if the parsin list if empty meaning no
         files will be parsed from the retrieved folder
         """
-        parse_default = ['CONTCAR', 'vasprun.xml', 'OUTCAR']
+        parse_default = ['CONTCAR*', 'vasprun.xml*', 'OUTCAR*']
         settings = dict(self.settings)
         self.fail_on_empty_list = settings.pop('fail_on_missing_files', False)
         self.parsing_list = settings.pop('parse_files', parse_default)

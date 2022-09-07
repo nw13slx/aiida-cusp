@@ -286,13 +286,33 @@ class CalculationBase(CalcJob):
         remote_comp_uuid = remote_data.computer.uuid
         exclude_files = self.restart_files_exclude()
         overwrite_poscar = self.inputs.restart.get('contcar_to_poscar', True)
+
+        jobs = dict(self.inputs.custodian.get('jobs', {}))
+        suffixes = [""]
+        for job in jobs:
+            suffixes.append(job.get("suffix", ""))
+        suffixes = list(set(suffixes))
+
         for name, abspath, relpath in self.remote_filelist(remote_data):
-            if name in exclude_files:
+
+            # detect suffix and take it out
+            has_suffix = False
+            current_suffix = ""
+            for suffix in suffixes:
+                if name.endswith(suffix):
+                    has_suffix = True
+                    current_suffix = f"{suffix}"
+            if has_suffix:
+                bare_name = name[:-len(current_suffix)]
+
+            if bare_name in exclude_files:
                 continue
+
             # if overwrite poscar is set change target name for CONTCAR-files
             # to POSCAR
-            if name == VaspDefaults.FNAMES['contcar'] and overwrite_poscar:
-                name = VaspDefaults.FNAMES['poscar']
+            if (bare_name == VaspDefaults.FNAMES['contcar']
+               and overwrite_poscar):
+                name = VaspDefaults.FNAMES['poscar'] + current_suffix
             file_relpath = relpath + '/' + name
             remote_copy_entry = (remote_comp_uuid, abspath, file_relpath)
             calcinfo.remote_copy_list.append(remote_copy_entry)
