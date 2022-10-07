@@ -259,8 +259,9 @@ class CustodianSettings(object):
             vasp_job_type = CustodianDefaults.VASP_JOB_IMPORT_PATH
 
         if len(self.custodian_jobs) == 0:
-            custodian_jobs = [{"jb": vasp_job_type,
-                               "params": vasp_job_settings}]
+            raise RuntimeError("job list has to be specified")
+            # custodian_jobs = [{"jb": vasp_job_type,
+            #                    "params": vasp_job_settings}]
         else:
             for name, job in self.custodian_jobs.items():
                 job["vasp_cmd"] = self.vasp_cmd
